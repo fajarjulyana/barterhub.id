@@ -245,14 +245,6 @@ BarterHub v1.2 siap untuk deployment di Replit dengan konfigurasi optimal:
 - **Advanced Analytics** dashboard
 - **Automated Testing** dengan CI/CD pipeline
 
-## 🏆 Penghargaan & Sertifikasi
-
-### 🥇 Awards
-- 🏆 **Best Startup 2024** - Indonesia Digital Innovation
-- 🌟 **Sustainability Champion** - Green Tech Awards
-- 🚀 **Innovation Excellence** - Tech Startup Competition
-- 👥 **Community Choice** - People's Favorite Platform
-
 ### 📜 Certifications
 - ✅ **ISO 27001** - Information Security Management
 - ✅ **SOC 2 Type II** - Security and Availability
