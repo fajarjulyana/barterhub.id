@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Platform barter terpercaya untuk tukar menukar barang dengan sistem poin yang adil">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="user-authenticated" content="{% if current_user.is_authenticated %}true{% else %}false{% endif %}">
+    {% if current_user.is_authenticated %}
+    <meta name="user-id" content="{{ current_user.id }}">
+    <meta name="user-full-name" content="{{ current_user.full_name }}">
+    <meta name="user-role" content="{{ current_user.role }}">
+    {% endif %}
+    {% if current_user.is_authenticated %}
+    <meta name="user-full-name" content="{{ current_user.full_name }}">
+    <meta name="user-id" content="{{ current_user.id }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% endif %}
+    <title>{% block title %}BarterHub - Platform Barter Terpercaya{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-exchange-alt"></i>
+                BarterHub
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home me-1"></i>Beranda
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('products.list_products') }}">
+                            <i class="fas fa-box me-1"></i>Produk
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('transactions.list_transactions') }}">
+                            <i class="fas fa-handshake me-1"></i>Transaksi Saya
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-primary btn-sm me-2" href="{{ url_for('products.add') }}">
+                                <i class="fas fa-plus me-1"></i>Tambah Produk
+                            </a>
+                        </li>
+                        {% if current_user.is_admin() %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                                <i class="fas fa-cog me-1"></i>Admin
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.wishlist') }}">
+                                <i class="fas fa-heart me-1"></i>Wishlist
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.profile') }}">
+                                {% if current_user.profile_picture %}
+                                    <img src="{{ current_user.get_profile_picture() }}" alt="Profile" class="rounded-circle me-1" style="width: 20px; height: 20px; object-fit: cover;">
+                                {% else %}
+                                    <i class="fas fa-user me-1"></i>
+                                {% endif %}
+                                Profil
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Masuk
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-primary btn-sm ms-2" href="{{ url_for('auth.register') }}">
+                                <i class="fas fa-user-plus me-1"></i>Daftar Sekarang
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container" style="margin-top: 80px;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main style="margin-top: 80px;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Floating Chat -->
+    {% if current_user.is_authenticated %}
+    <div id="chatFloat" class="chat-float">
+        <div class="chat-toggle" onclick="toggleChat()">
+            <i class="fas fa-comments"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="chatBadge" style="display: none;">
+                0
+            </span>
+        </div>
+
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-comments me-2"></i>
+                    <h6 class="mb-0">Ruang Chat</h6>
+                </div>
+                <button class="btn-close btn-close-white" onclick="toggleChat()"></button>
+            </div>
+
+            <div class="chat-content">
+                <!-- Chat Rooms List -->
+                <div id="chatRoomsList" class="chat-rooms-list">
+                    <div class="text-center p-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mb-0 mt-2 small">Loading chats...</p>
+                    </div>
+                </div>
+
+                <!-- Active Chat View -->
+                <div class="active-chat-view" id="activeChatView" style="display: none;">
+                        <div class="chat-view-header">
+                            <button class="btn btn-sm btn-outline-light me-2" onclick="backToChatList()">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0" id="activeChatTitle">Chat</h6>
+                                <small class="text-white-50" id="activeChatSubtitle">Produk</small>
+                            </div>
+                            <button class="btn btn-sm btn-warning me-1" onclick="openFullChat()" title="Buka Chat Room Penuh">
+                                <i class="fas fa-expand me-1"></i>
+                                <span class="d-none d-md-inline">Perbesar</span>
+                            </button>
+                        </div>
+
+                    <div class="chat-messages-mini" id="chatMessagesMini">
+                        <!-- Messages will be loaded here -->
+                    </div>
+
+                    <div class="chat-input-mini">
+                            <div class="d-grid gap-2 mb-2">
+                                <button class="btn btn-warning btn-sm" onclick="openFullChat()" title="Buka Chat Room Lengkap">
+                                    <i class="fas fa-comments me-1"></i>
+                                    Buka Chat Room Penuh
+                                </button>
+                            </div>
+                            <form class="d-flex gap-2" onsubmit="event.preventDefault(); sendQuickMessage();">
+                                <input type="text" class="form-control form-control-sm" id="quickMessageInput" placeholder="Ketik pesan...">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="footer-section">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-exchange-alt me-2" style="color: var(--primary-orange); font-size: 1.5rem;"></i>
+                            <h5 class="mb-0">BarterHub</h5>
+                        </div>
+                        <p style="color: #bdc3c7;">Bergabung dengan Ribuan Pedagang Bahagia. Membangun kepercayaan melalui pertukaran yang sukses.</p>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="footer-section">
+                        <h6>Platform</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ url_for('products.list_products') }}" class="footer-link">Jelajahi Produk</a></li>
+                            <li><a href="{{ url_for('auth.register') }}" class="footer-link">Daftar</a></li>
+                            <li><a href="#" class="footer-link">Cara Kerja</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="footer-section">
+                        <h6>Support</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="footer-link">Pusat Bantuan</a></li>
+                            <li><a href="#" class="footer-link">Hubungi Kami</a></li>
+                            <li><a href="#" class="footer-link">Tips Keamanan</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="footer-section">
+                        <h6>Info Kontak</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-envelope me-2" style="color: var(--primary-orange);"></i>
+                            <span style="color: #bdc3c7;">bantuan@barterhub.com</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-phone me-2" style="color: var(--primary-orange);"></i>
+                            <span style="color: #bdc3c7;">+62 818 044 11937</span>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <a href="#" style="color: var(--primary-orange); font-size: 1.2rem;"><i class="fab fa-facebook"></i></a>
+                            <a href="#" style="color: var(--primary-orange); font-size: 1.2rem;"><i class="fab fa-instagram"></i></a>
+                            <a href="#" style="color: var(--primary-orange); font-size: 1.2rem;"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border-color: #495057; margin: 2rem 0 1rem;">
+
+            <div class="text-center">
+                <p style="color: #bdc3c7; margin: 0;">
+                    &copy; 2024 BarterHub. Made with ❤️ by 
+                    <span onclick="showOwnerModal()" style="cursor: pointer; color: var(--primary-orange); text-decoration: underline;">
+                        Fajar Julyana
+                    </span>
+                </p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-content">
+                                <h2 class="stat-number">10K+</h2>
+                                <p class="stat-label">Pengguna Aktif</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-box-open"></i></div>
+                            <div class="stat-content">
+                                <h2 class="stat-number">25K+</h2>
+                                <p class="stat-label">Produk Terdaftar</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-exchange-alt"></i></div>
+                            <div class="stat-content">
+                                <h2 class="stat-number">15K+</h2>
+                                <p class="stat-label">Barter Sukses</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p class="stat-label">Rating Rata-rata: <span class="stat-number">4.9</span> <i class="fas fa-star text-warning"></i></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/floating-chat.js') }}"></script>
+
+    <script>
+    let chatOpen = false;
+    let activeChatRoomId = null;
+    let chatRefreshInterval = null;
+    let notificationPermission = 'default';
+
+    // Initialize chat when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeFloatingChat();
+        requestNotificationPermission();
+    });
+
+    function initializeFloatingChat() {
+        loadChatRooms();
+
+        // Refresh chat rooms every 30 seconds
+        setInterval(function() {
+            if (document.visibilityState === 'visible') {
+                loadChatRooms();
+                if (activeChatRoomId) {
+                    loadChatMessages(activeChatRoomId);
+                }
+            }
+        }, 30000);
+
+        // Handle quick chat form submission
+        const quickChatForm = document.getElementById('quickChatForm');
+        if (quickChatForm) {
+            quickChatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                sendQuickMessage();
+            });
+        }
+    }
+
+    function requestNotificationPermission() {
+        if ('Notification' in window) {
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().then(function(permission) {
+                    notificationPermission = permission;
+                });
+            } else {
+                notificationPermission = Notification.permission;
+            }
+        }
+    }
+
+    function showNotification(title, message, icon = '/static/favicon.ico') {
+        if (notificationPermission === 'granted' && document.visibilityState === 'hidden') {
+            const notification = new Notification(title, {
+                body: message,
+                icon: icon,
+                badge: icon,
+                tag: 'barterhub-chat'
+            });
+
+            notification.onclick = function() {
+                window.focus();
+                toggleChat();
+                notification.close();
+            };
+
+            // Auto close after 5 seconds
+            setTimeout(() => notification.close(), 5000);
+        }
+    }
+
+    function toggleChat() {
+        const chatWindow = document.getElementById('chatWindow');
+        chatOpen = !chatOpen;
+
+        if (chatOpen) {
+            chatWindow.classList.add('show');
+            loadChatRooms();
+        } else {
+            chatWindow.classList.remove('show');
+            backToChatList();
+        }
+    }
+
+    function loadChatRooms() {
+        // Check if user is authenticated first
+        const userAuthMeta = document.querySelector('meta[name="user-authenticated"]');
+        if (!userAuthMeta || userAuthMeta.content !== 'true') {
+            console.log('User not authenticated, skipping chat rooms load');
+            const container = document.getElementById('chatRoomsList');
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-center p-3">
+                        <i class="fas fa-user-lock text-warning fs-2 mb-3"></i>
+                        <p class="mb-0 text-warning">Silakan login untuk menggunakan chat.</p>
+                        <a href="/auth/login" class="btn btn-primary btn-sm mt-2">Login</a>
+                    </div>
+                `;
+            }
+            updateChatBadge(0);
+            return;
+        }
+
+        fetch('/chat/rooms', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error("Authentication required");
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Not a JSON response, likely redirected to login.");
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            if (data.success !== false) {
+                updateChatRoomsList(data.rooms || []);
+                updateChatBadge(data.total_unread || 0);
+            } else {
+                throw new Error(data.error || 'Failed to load chat rooms');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading chat rooms:', error);
+            
+            const container = document.getElementById('chatRoomsList');
+            if (container) {
+                if (error.message.includes("Authentication") || error.message.includes("login")) {
+                    container.innerHTML = `
+                        <div class="text-center p-3">
+                            <i class="fas fa-user-lock text-warning fs-2 mb-3"></i>
+                            <p class="mb-0 text-warning">Session expired. Silakan login kembali.</p>
+                            <a href="/auth/login" class="btn btn-primary btn-sm mt-2">Login</a>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center p-3">
+                            <i class="fas fa-exclamation-triangle text-danger fs-2 mb-3"></i>
+                            <p class="mb-0 text-danger">Gagal memuat chat rooms.</p>
+                            <button class="btn btn-outline-primary btn-sm mt-2" onclick="loadChatRooms()">
+                                <i class="fas fa-refresh"></i> Coba Lagi
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+            updateChatBadge(0);
+        });
+    }
+
+    function updateChatRoomsList(rooms) {
+        const container = document.getElementById('chatRoomsList');
+
+        if (rooms.length === 0) {
+            container.innerHTML = `
+                <div class="text-center p-3">
+                    <i class="fas fa-comment-dots fs-2 mb-3 text-muted"></i>
+                    <p class="mb-0 text-muted">Belum ada chat aktif</p>
+                    <small class="text-muted">Mulai chat dengan menawar produk!</small>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = rooms.map(room => `
+            <div class="chat-room-item" onclick="openChatRoom(${room.id}, '${room.product_name}', '${room.other_user}')">
+                <div class="d-flex align-items-center">
+                    <div class="chat-avatar me-2">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-0 chat-room-title">${room.other_user}</h6>
+                            <small class="text-muted">${room.last_message_time}</small>
+                        </div>
+                        <small class="text-muted">${room.product_name}</small>
+                        <p class="mb-0 chat-last-message">${room.last_message}</p>
+                    </div>
+                    ${room.unread_count > 0 ? `<span class="badge bg-danger rounded-pill">${room.unread_count}</span>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateChatBadge(unreadCount) {
+        const badge = document.getElementById('chatBadge');
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function openChatRoom(roomId, productName, otherUser) {
+        activeChatRoomId = roomId;
+
+        // Show active chat view
+        document.getElementById('chatRoomsList').style.display = 'none';
+        document.getElementById('activeChatView').style.display = 'block';
+
+        // Update header
+        document.getElementById('activeChatTitle').textContent = otherUser;
+        document.getElementById('activeChatSubtitle').textContent = productName;
+
+        // Load messages
+        loadChatMessages(roomId);
+
+        // Set up auto-refresh for this chat
+        if (chatRefreshInterval) {
+            clearInterval(chatRefreshInterval);
+        }
+        chatRefreshInterval = setInterval(() => {
+            if (activeChatRoomId === roomId) {
+                loadChatMessages(roomId);
+            }
+        }, 5000);
+    }
+
+    function loadChatMessages(roomId) {
+        // Find the product ID from the chat room (we'll need to modify the API to include this)
+        fetch(`/chat/room_info/${roomId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) return response.json();
+            throw new Error('Failed to get room info');
+        })
+        .then(data => {
+            if (data.success) {
+                return fetch(`/chat/room/${data.product_id}/messages`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+            }
+            throw new Error('Failed to get room info');
+        })
+        .then(response => {
+            if (response.ok) return response.json();
+            throw new Error('Failed to load messages');
+        })
+        .then(data => {
+            updateChatMessages(data.messages || []);
+        })
+        .catch(error => {
+            console.error('Error loading messages:', error);
+        });
+    }
+
+    function updateChatMessages(messages) {
+        const container = document.getElementById('chatMessagesMini');
+
+        if (messages.length === 0) {
+            container.innerHTML = `
+                <div class="text-center p-3">
+                    <i class="fas fa-comment-dots text-muted"></i>
+                    <p class="mb-0 small text-muted">Belum ada pesan</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Show last 5 messages
+        const recentMessages = messages.slice(-5);
+
+        container.innerHTML = recentMessages.map(msg => {
+            const currentUserName = document.querySelector('meta[name="user-full-name"]')?.content || '';
+            const isOwn = msg.sender_name === currentUserName;
+            return `
+                <div class="message-mini ${isOwn ? 'own-message' : 'other-message'}">
+                    <div class="message-bubble-mini">
+                        <div class="message-content-mini">${msg.message || ''}</div>
+                        <small class="message-time-mini">${new Date(msg.created_at).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'})}</small>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Auto scroll to bottom
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function sendQuickMessage() {
+        // Use the FloatingChat instance if available
+        if (window.floatingChat) {
+            window.floatingChat.sendQuickMessage();
+            return;
+        }
+
+        // Fallback implementation
+        const input = document.getElementById('quickMessageInput');
+        const message = input.value ? input.value.trim() : '';
+
+        if (!message || message === '') {
+            alert('Pesan tidak boleh kosong');
+            if (input) input.focus();
+            return;
+        }
+
+        if (!activeChatRoomId) {
+            alert('Pilih chat room terlebih dahulu');
+            return;
+        }
+
+        console.log('Fallback sendQuickMessage:', message, 'to room:', activeChatRoomId);
+
+        // Disable input while sending
+        input.disabled = true;
+
+        // Send message directly to room
+        const formData = new FormData();
+        formData.append('message', message);
+
+        // Get CSRF token
+        const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || 
+                         document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
+
+        fetch(`/chat/room/${activeChatRoomId}/send_message`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log('Send message result:', result);
+            if (result.success) {
+                input.value = '';
+                // Reload messages immediately
+                setTimeout(() => {
+                    loadChatMessages(activeChatRoomId);
+                    loadChatRooms();
+                }, 300);
+            } else {
+                throw new Error(result.error || 'Gagal mengirim pesan');
+            }
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+            alert(`Gagal mengirim pesan: ${error.message}`);
+        })
+        .finally(() => {
+            input.disabled = false;
+            input.focus();
+        });
+    }
+
+    function backToChatList() {
+        document.getElementById('activeChatView').style.display = 'none';
+        document.getElementById('chatRoomsList').style.display = 'block';
+        activeChatRoomId = null;
+
+        if (chatRefreshInterval) {
+            clearInterval(chatRefreshInterval);
+            chatRefreshInterval = null;
+        }
+    }
+
+    function openFullChat() {
+        // Use the FloatingChat instance if available
+        if (window.floatingChat) {
+            window.floatingChat.openFullChat();
+        } else if (activeChatRoomId) {
+            console.log('Using fallback openFullChat for room:', activeChatRoomId);
+            
+            fetch(`/chat/room_info/${activeChatRoomId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fallback room info response:', data);
+                if (data.success && data.product_id) {
+                    window.location.href = `/chat/room/${data.product_id}`;
+                } else {
+                    throw new Error(data.error || 'Info room tidak ditemukan');
+                }
+            })
+            .catch(error => {
+                console.error('Error in fallback openFullChat:', error);
+                alert(`Gagal membuka halaman chat: ${error.message}`);
+            });
+        } else {
+            alert('Pilih chat room terlebih dahulu');
+            console.log('No active chat room or FloatingChat instance');
+        }
+    }
+
+    function showOwnerModal() {
+        // Simple owner access - you can enhance this
+        const password = prompt('Enter owner password:');
+        if (password === 'fajar123') {
+            window.location.href = '/admin/dashboard';
+        }
+    }
+
+    // Close chat when clicking outside
+    document.addEventListener('click', function(e) {
+        const chatFloat = document.getElementById('chatFloat');
+        if (chatOpen && chatFloat && !chatFloat.contains(e.target)) {
+            toggleChat();
+        }
+    });
+
+    // Handle Enter key in quick message input
+    document.addEventListener('keydown', function(e) {
+        if (e.target.id === 'quickMessageInput' && e.key === 'Enter') {
+            e.preventDefault();
+            sendQuickMessage();
+        }
+    });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

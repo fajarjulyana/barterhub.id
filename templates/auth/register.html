@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Daftar - BarterHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Daftar Akun Baru
+                    </h3>
+                    <p class="mb-0 mt-2 opacity-75">Bergabung dengan komunitas barter terpercaya</p>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+                                    {{ form.username.label(class="form-label") }}
+                                    {% if form.username.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                                    {{ form.email.label(class="form-label") }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else "")) }}
+                            {{ form.full_name.label(class="form-label") }}
+                            {% if form.full_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.full_name.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.role.label(class="form-label") }}
+                            {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle text-info me-1"></i>
+                                <strong>Semua pengguna:</strong> Dapat menambah produk untuk barter dan melakukan negosiasi.
+                                Role hanya menentukan preferensi awal Anda.
+                            </div>
+                            {% if form.role.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.role.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+                                    {{ form.password.label(class="form-label") }}
+                                    {% if form.password.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.password.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else "")) }}
+                                    {{ form.password2.label(class="form-label") }}
+                                    {% if form.password2.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.password2.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
+                            {{ form.phone.label(class="form-label") }}
+                            <div class="form-text text-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i>WAJIB - untuk koordinasi pengiriman
+                            </div>
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), style="height: 120px") }}
+                            {{ form.address.label(class="form-label") }}
+                            <div class="form-text text-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i>WAJIB - alamat lengkap untuk pengiriman barang barter
+                            </div>
+                            {% if form.address.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.address.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            {{ form.kode_pos(class="form-control" + (" is-invalid" if form.kode_pos.errors else "")) }}
+                            {{ form.kode_pos.label(class="form-label") }}
+                            <div class="form-text text-info">
+                                <i class="fas fa-info-circle me-1"></i>OPSIONAL - dapat diisi manual di agen pengiriman (JNE, J&T, dll)
+                            </div>
+                            {% if form.kode_pos.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.kode_pos.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <p class="mb-0">
+                        Sudah punya akun? 
+                        <a href="{{ url_for('auth.login') }}" class="text-primary text-decoration-none fw-semibold">
+                            Masuk di sini
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
