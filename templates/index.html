@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6 hero-content">
+                <div class="fade-in">
+                    <h1 class="hero-title slide-in-left">
+                        Temukan Masa Depan 
+                        <span style="color: var(--primary-orange);">E-commerce</span>
+                    </h1>
+                    <p class="hero-subtitle slide-in-left" style="animation-delay: 0.2s;">
+                        Ubah pengalaman berbelanja Anda dengan platform barter inovatif kami. 
+                        Tukar produk dengan mudah menggunakan sistem poin cerdas dan bergabunglah dengan komunitas pedagang terpercaya.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap slide-in-left" style="animation-delay: 0.4s;">
+                        <a href="{{ url_for('products.list_products') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search"></i>
+                            Jelajahi Produk
+                        </a>
+                        {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-user-plus"></i>
+                            Mulai Sekarang
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Floating Elements -->
+                <div class="floating-element element-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="category-icon" style="width: 40px; height: 40px; font-size: 1rem;">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">Rating</small>
+                            <div style="font-weight: 600;">4.9/5.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="floating-element element-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="category-icon" style="width: 40px; height: 40px; font-size: 1rem;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">Active Users</small>
+                            <div style="font-weight: 600;">10K+</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 hero-image">
+                <div class="position-relative slide-in-right">
+                    <!-- Modern Product Display -->
+                    <div style="background: var(--white); border-radius: var(--border-radius); padding: 2rem; box-shadow: 0 20px 40px var(--shadow); position: relative; max-width: 500px; margin: 0 auto;">
+                        <!-- Simulated Product Card -->
+                        <div style="background: var(--peach); border-radius: 50%; width: 200px; height: 200px; margin: 0 auto 2rem; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                            <i class="fas fa-chair" style="font-size: 4rem; color: var(--primary-orange);"></i>
+
+                            <!-- Small floating elements around the chair -->
+                            <div style="position: absolute; top: 10px; right: 10px; background: var(--white); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px var(--shadow-light);">
+                                <i class="fas fa-heart" style="color: var(--primary-orange); font-size: 0.8rem;"></i>
+                            </div>
+
+                            <div style="position: absolute; bottom: 10px; left: 10px; background: var(--white); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px var(--shadow-light);">
+                                <i class="fas fa-share" style="color: var(--primary-orange); font-size: 0.8rem;"></i>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <h4 style="color: var(--dark-text); margin-bottom: 0.5rem;">Modern Chair Collection</h4>
+                            <p style="color: var(--light-text); margin-bottom: 1rem;">Premium comfort meets elegant design</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary-orange);">250 Points</span>
+                                <button class="btn btn-primary btn-sm">Trade Now</button>
+                            </div>
+                        </div>
+
+                        <!-- Small product previews -->
+                        <div class="d-flex justify-content-center gap-2 mt-3">
+                            <div style="width: 40px; height: 40px; background: var(--cream); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-laptop" style="color: var(--primary-orange);"></i>
+                            </div>
+                            <div style="width: 40px; height: 40px; background: var(--cream); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-headphones" style="color: var(--primary-orange);"></i>
+                            </div>
+                            <div style="width: 40px; height: 40px; background: var(--cream); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-camera" style="color: var(--primary-orange);"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+{% if categories %}
+<section class="py-5" style="background: var(--white);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="mb-3" style="color: var(--dark-text);">Kategori Populer</h2>
+            <p style="color: var(--light-text);">Temukan produk menakjubkan di berbagai kategori</p>
+        </div>
+
+        <div class="category-grid">
+            {% for category in categories %}
+            <a href="{{ url_for('products.list_products', category=category.id) }}" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <h6 class="mb-2">{{ category.name }}</h6>
+                <small style="color: var(--light-text);">{{ category.description }}</small>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Products -->
+{% if products %}
+<section class="py-5" style="background: linear-gradient(135deg, var(--cream) 0%, #fff8f5 100%);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 style="color: var(--dark-text);">Produk Unggulan</h2>
+                <p style="color: var(--light-text);">Barang pilihan siap untuk ditukar</p>
+            </div>
+            <a href="{{ url_for('products.list_products') }}" class="btn btn-outline-primary">
+                Lihat Semua <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="position-relative">
+                    <img src="{{ url_for('static', filename='uploads/products/' + product.get_main_image()) }}" 
+                         class="product-image" alt="{{ product.title }}"
+                         onerror="this.src='https://via.placeholder.com/300x250/ff7b54/ffffff?text=Product+Image'">
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-primary">{{ product.total_points }} Points</span>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h6 class="product-title">{{ product.title[:40] }}{% if product.title|length > 40 %}...{% endif %}</h6>
+                    <p class="product-description">{{ product.description[:60] }}{% if product.description|length > 60 %}...{% endif %}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small style="color: var(--light-text);">
+                            <i class="fas fa-star" style="color: #ffd700;"></i> {{ product.condition }}
+                        </small>
+                        <small class="badge" style="background: var(--peach); color: var(--dark-text);">{{ product.category.name }}</small>
+                    </div>
+                    <a href="{{ url_for('products.detail', id=product.id) }}" class="btn btn-primary w-100">
+                        <i class="fas fa-exchange-alt me-2"></i>Mulai Barter
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <button class="btn btn-outline-secondary btn-sm mt-2 w-100 add-to-wishlist" data-product-id="{{ product.id }}">
+                        <i class="fas fa-heart"></i> Tambah ke Wishlist
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- How It Works -->
+<section class="features-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 style="color: var(--dark-text);">Cara Kerja BarterHub</h2>
+            <p style="color: var(--light-text);">Langkah mudah untuk mulai barter</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h5 style="color: var(--dark-text);">Daftar</h5>
+                    <p style="color: var(--light-text);">Buat akun gratis dan bergabung dengan komunitas barter kami</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h5 style="color: var(--dark-text);">Pasang Barang</h5>
+                    <p style="color: var(--light-text);">Unggah produk Anda dengan foto dan deskripsi</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h5 style="color: var(--dark-text);">Negosiasi</h5>
+                    <p style="color: var(--light-text);">Chat dengan pengguna lain untuk mengatur barter yang adil</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h5 style="color: var(--dark-text);">Barter</h5>
+                    <p style="color: var(--light-text);">Selesaikan pertukaran dan beri nilai pengalaman Anda</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics -->
+<section class="stats-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 style="color: var(--dark-text);">Bergabung dengan Ribuan Pedagang Bahagia</h2>
+            <p style="color: var(--light-text);">Membangun kepercayaan melalui pertukaran yang sukses</p>
+        </div>
+        <div class="row text-center g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-box">
+                    <div class="stat-icon">
+                        <i class="fas fa-users" style="color: var(--primary-orange);"></i>
+                    </div>
+                    <div class="stat-number">12K+</div>
+                    <div class="stat-label">Pengguna Aktif</div>
+                    <div class="stat-desc">Terdaftar dan aktif bertransaksi</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-box">
+                    <div class="stat-icon">
+                        <i class="fas fa-box" style="color: var(--peach);"></i>
+                    </div>
+                    <div class="stat-number">28K+</div>
+                    <div class="stat-label">Produk Terdaftar</div>
+                    <div class="stat-desc">Berbagai kategori tersedia</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-box">
+                    <div class="stat-icon">
+                        <i class="fas fa-handshake" style="color: var(--accent-gold);"></i>
+                    </div>
+                    <div class="stat-number">18K+</div>
+                    <div class="stat-label">Barter Sukses</div>
+                    <div class="stat-desc">Transaksi berhasil diselesaikan</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-box">
+                    <div class="stat-icon">
+                        <i class="fas fa-star" style="color: #ffd700;"></i>
+                    </div>
+                    <div class="stat-number">4.8</div>
+                    <div class="stat-label">Rating Rata-rata</div>
+                    <div class="stat-desc">Kepuasan pengguna tinggi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust Indicators -->
+        <div class="row mt-5 justify-content-center">
+            <div class="col-lg-8">
+                <div class="trust-indicators">
+                    <div class="row text-center g-3">
+                        <div class="col-md-4">
+                            <div class="trust-item">
+                                <i class="fas fa-shield-alt" style="color: var(--primary-orange);"></i>
+                                <h6>Transaksi Aman</h6>
+                                <small>Sistem verifikasi berlapis</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="trust-item">
+                                <i class="fas fa-clock" style="color: var(--peach);"></i>
+                                <h6>Respon Cepat</h6>
+                                <small>Chat real-time 24/7</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="trust-item">
+                                <i class="fas fa-award" style="color: var(--accent-gold);"></i>
+                                <h6>Kualitas Terjamin</h6>
+                                <small>Sistem rating & review</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Add fade-in animation to elements when they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all cards and sections
+    document.querySelectorAll('.product-card, .category-card, .feature-box, .stat-card, .trust-item').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+
+    // Handle wishlist functionality
+    document.querySelectorAll('.add-to-wishlist').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            fetch('/api/wishlist/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ product_id: productId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Product added to wishlist!');
+                    // Optionally update UI, e.g., change button text or color
+                } else {
+                    alert('Failed to add product to wishlist. ' + data.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('An error occurred.');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
