@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Tambah Produk - BarterHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Beranda</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('products.list_products') }}">Produk</a></li>
+                    <li class="breadcrumb-item active">Tambah Produk</li>
+                </ol>
+            </nav>
+            <h2>
+                <i class="fas fa-plus text-primary me-2"></i>Tambah Produk Baru
+            </h2>
+            <p class="text-muted">Isi informasi produk dengan lengkap untuk mendapatkan penilaian poin yang akurat.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Basic Information -->
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Informasi Dasar
+                            </h5>
+                            
+                            <div class="form-floating mb-3">
+                                {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                                {{ form.title.label(class="form-label") }}
+                                {% if form.title.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.title.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), style="height: 120px") }}
+                                {{ form.description.label(class="form-label") }}
+                                <div class="form-text">Jelaskan produk secara detail termasuk kondisi, kerusakan (jika ada), dan informasi penting lainnya.</div>
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.category_id.label.text }}</label>
+                                    {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+                                    {% if form.category_id.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.category_id.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.condition.label.text }}</label>
+                                    {{ form.condition(class="form-select" + (" is-invalid" if form.condition.errors else "")) }}
+                                    {% if form.condition.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.condition.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                {{ form.desired_items(class="form-control" + (" is-invalid" if form.desired_items.errors else ""), style="height: 100px") }}
+                                {{ form.desired_items.label(class="form-label") }}
+                                <div class="form-text">
+                                    <i class="fas fa-exchange-alt text-success me-1"></i>
+                                    Sebutkan secara detail barang apa yang Anda cari untuk ditukar dengan produk ini.
+                                </div>
+                                {% if form.desired_items.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.desired_items.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Images -->
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-images me-2"></i>Foto Produk
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.images.label.text }}</label>
+                                {{ form.images(class="form-control", multiple=True, accept="image/*") }}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-info me-1"></i>
+                                    Upload maksimal 5 foto produk. Format yang didukung: JPG, PNG, GIF. Ukuran maksimal 16MB per file.
+                                </div>
+                                {% if form.images.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.images.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Point Calculation -->
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-calculator me-2"></i>Penilaian Poin Barter
+                            </h5>
+                            <p class="text-muted mb-3">
+                                Berikan penilaian objektif untuk setiap faktor. Poin total akan dihitung otomatis berdasarkan nilai ini.
+                            </p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.utility_score.label.text }}</label>
+                                    {{ form.utility_score(class="form-range", min="1", max="10", oninput="updateRangeValue(this, 'utility')") }}
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span>Tidak berguna (1)</span>
+                                        <span id="utility-value" class="fw-bold">{{ form.utility_score.data }}</span>
+                                        <span>Sangat berguna (10)</span>
+                                    </div>
+                                    <div class="form-text">Seberapa berguna produk ini dalam kehidupan sehari-hari?</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.scarcity_score.label.text }}</label>
+                                    {{ form.scarcity_score(class="form-range", min="1", max="10", oninput="updateRangeValue(this, 'scarcity')") }}
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span>Mudah ditemukan (1)</span>
+                                        <span id="scarcity-value" class="fw-bold">{{ form.scarcity_score.data }}</span>
+                                        <span>Sangat langka (10)</span>
+                                    </div>
+                                    <div class="form-text">Seberapa sulit menemukan produk serupa di pasaran?</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.durability_score.label.text }}</label>
+                                    {{ form.durability_score(class="form-range", min="1", max="10", oninput="updateRangeValue(this, 'durability')") }}
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span>Mudah rusak (1)</span>
+                                        <span id="durability-value" class="fw-bold">{{ form.durability_score.data }}</span>
+                                        <span>Sangat tahan lama (10)</span>
+                                    </div>
+                                    <div class="form-text">Seberapa tahan lama produk ini bisa digunakan?</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.portability_score.label.text }}</label>
+                                    {{ form.portability_score(class="form-range", min="1", max="10", oninput="updateRangeValue(this, 'portability')") }}
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span>Sulit dibawa (1)</span>
+                                        <span id="portability-value" class="fw-bold">{{ form.portability_score.data }}</span>
+                                        <span>Mudah dibawa (10)</span>
+                                    </div>
+                                    <div class="form-text">Seberapa mudah produk ini untuk dibawa atau dipindahkan?</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.seasonal_score.label.text }}</label>
+                                    {{ form.seasonal_score(class="form-range", min="1", max="10", oninput="updateRangeValue(this, 'seasonal')") }}
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span>Tidak musiman (1)</span>
+                                        <span id="seasonal-value" class="fw-bold">{{ form.seasonal_score.data }}</span>
+                                        <span>Sangat musiman (10)</span>
+                                    </div>
+                                    <div class="form-text">Apakah produk ini memiliki nilai yang bervariasi berdasarkan musim?</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                            <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Kembali
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Tips Produk Berkualitas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Gunakan foto yang jelas dan berkualitas
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Tulis deskripsi yang detail dan jujur
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Sebutkan kerusakan atau kekurangan jika ada
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Berikan penilaian poin yang objektif
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Pilih kategori yang tepat
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Sistem Poin
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        Poin dihitung berdasarkan kombinasi faktor-faktor berikut:
+                    </p>
+                    <ul class="list-unstyled small">
+                        <li><strong>Kegunaan:</strong> Utilitas dalam kehidupan</li>
+                        <li><strong>Kelangkaan:</strong> Ketersediaan di pasaran</li>
+                        <li><strong>Daya Tahan:</strong> Durabilitas produk</li>
+                        <li><strong>Portabilitas:</strong> Kemudahan pengiriman</li>
+                        <li><strong>Musiman:</strong> Fluktuasi nilai berdasarkan waktu</li>
+                    </ul>
+                    <div class="alert alert-warning small mt-2 mb-0">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Poin akan disesuaikan dengan kondisi produk secara otomatis.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateRangeValue(range, type) {
+    document.getElementById(type + '-value').textContent = range.value;
+}
+
+// Initialize range values
+document.addEventListener('DOMContentLoaded', function() {
+    const ranges = ['utility', 'scarcity', 'durability', 'portability', 'seasonal'];
+    ranges.forEach(type => {
+        const range = document.querySelector(`input[name="${type}_score"]`);
+        if (range) {
+            updateRangeValue(range, type);
+        }
+    });
+});
+</script>
+{% endblock %}

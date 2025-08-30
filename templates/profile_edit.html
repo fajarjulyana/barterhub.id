@@ -1,0 +1,92 @@
+
+{% extends "base.html" %}
+
+{% block title %}Edit Profil - BarterHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Edit Profil
+                    </h3>
+                    <p class="mb-0 mt-2 opacity-75">Perbarui informasi akun Anda</p>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="form-floating mb-3">
+                            {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else "")) }}
+                            {{ form.full_name.label(class="form-label") }}
+                            {% if form.full_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.full_name.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                            {{ form.email.label(class="form-label") }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
+                            {{ form.phone.label(class="form-label") }}
+                            <div class="form-text text-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i>WAJIB - untuk koordinasi pengiriman
+                            </div>
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), style="height: 120px") }}
+                            {{ form.address.label(class="form-label") }}
+                            <div class="form-text text-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i>WAJIB - alamat lengkap untuk pengiriman barang barter
+                            </div>
+                            {% if form.address.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.address.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            {{ form.kode_pos(class="form-control" + (" is-invalid" if form.kode_pos.errors else "")) }}
+                            {{ form.kode_pos.label(class="form-label") }}
+                            <div class="form-text text-info">
+                                <i class="fas fa-info-circle me-1"></i>OPSIONAL - dapat diisi manual di agen pengiriman (JNE, J&T, dll)
+                            </div>
+                            {% if form.kode_pos.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.kode_pos.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                            <a href="{{ url_for('main.profile') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Batal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

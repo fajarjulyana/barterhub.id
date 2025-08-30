@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}Detail Transaksi #{{ transaction.id }} - BarterHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Beranda</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('transactions.list_transactions') }}">Transaksi</a></li>
+                    <li class="breadcrumb-item active">Detail #{{ transaction.id }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="fas fa-handshake text-primary me-2"></i>Transaksi #{{ transaction.id }}
+                    </h2>
+                    <p class="text-muted mb-0">{{ transaction.created_at.strftime('%d %B %Y, %H:%M') }}</p>
+                </div>
+                <div>
+                    {% if transaction.status == 'pending' %}
+                        <span class="badge bg-warning fs-6">Menunggu Persetujuan</span>
+                    {% elif transaction.status == 'agreed' %}
+                        <span class="badge bg-info fs-6">Disepakati</span>
+                    {% elif transaction.status == 'shipped' %}
+                        <span class="badge bg-primary fs-6">Dalam Pengiriman</span>
+                    {% elif transaction.status == 'completed' %}
+                        <span class="badge bg-success fs-6">Selesai</span>
+                    {% elif transaction.status == 'cancelled' %}
+                        <span class="badge bg-secondary fs-6">Dibatalkan</span>
+                    {% elif transaction.status == 'dispute' %}
+                        <span class="badge bg-danger fs-6">Sengketa</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Transaction Details -->
+        <div class="col-lg-8">
+            <!-- Product Being Requested -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-box me-2"></i>Produk yang Diminta
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <img src="{{ url_for('static', filename='uploads/products/' + transaction.product.get_main_image()) }}" 
+                                 class="img-fluid rounded" alt="{{ transaction.product.title }}"
+                                 onerror="this.src='https://via.placeholder.com/200x150?text=No+Image'">
+                        </div>
+                        <div class="col-md-9">
+                            <h6>{{ transaction.product.title }}</h6>
+                            <p class="text-muted">{{ transaction.product.description }}</p>
+                            <div class="row g-3">
+                                <div class="col-sm-4">
+                                    <small class="text-muted">Kategori</small>
+                                    <div class="fw-semibold">{{ transaction.product.category.name }}</div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <small class="text-muted">Kondisi</small>
+                                    <div class="fw-semibold">{{ transaction.product.condition }}</div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <small class="text-muted">Poin</small>
+                                    <div class="fw-semibold text-primary">{{ transaction.total_seller_points }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offered Products -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-gifts me-2"></i>Produk yang Ditawarkan
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set offers = transaction.offers.all() %}
+                    {% if offers %}
+                        {% for offer in offers %}
+                        <div class="row mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                            <div class="col-md-2">
+                                <img src="{{ url_for('static', filename='uploads/products/' + offer.product.get_main_image()) }}" 
+                                     class="img-fluid rounded" style="height: 60px; width: 100%; object-fit: cover;" 
+                                     alt="{{ offer.product.title }}"
+                                     onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">
+                            </div>
+                            <div class="col-md-8">
+                                <h6 class="mb-1">{{ offer.product.title }}</h6>
+                                <p class="text-muted small mb-1">{{ offer.product.description[:100] }}...</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-tag me-1"></i>{{ offer.product.category.name }} • 
+                                    <i class="fas fa-star me-1"></i>{{ offer.product.condition }}
+                                </small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <div class="fw-bold text-success">{{ offer.points }} Poin</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="row mt-3">
+                            <div class="col text-end">
+                                <div class="h5 mb-0">
+                                    Total: <span class="text-success">{{ transaction.total_buyer_points }} Poin</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-box-open fs-2 mb-2"></i>
+                            <p>Belum ada produk yang ditawarkan</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Shipping Information -->
+            {% if transaction.status in ['agreed', 'shipped', 'completed'] %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shipping-fast me-2"></i>Informasi Pengiriman
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- Seller Shipping (Penjual kirim ke Pembeli) -->
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="text-primary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    Penjual → Pembeli
+                                </h6>
+                                <small class="text-muted">{{ transaction.seller.full_name }} mengirim produk ke {{ transaction.buyer.full_name }}</small>
+
+                                {% if transaction.seller_tracking_number %}
+                                    <div class="mb-2 mt-2">
+                                        <small class="text-muted">Nomor Resi</small>
+                                        <div class="fw-semibold">{{ transaction.seller_tracking_number }}</div>
+                                    </div>
+                                    {% if transaction.seller_shipped_at %}
+                                    <div class="mb-2">
+                                        <small class="text-muted">Dikirim pada</small>
+                                        <div>{{ transaction.seller_shipped_at.strftime('%d %b %Y, %H:%M') }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if transaction.seller_received_at %}
+                                    <span class="badge bg-success">Dikonfirmasi Diterima Pembeli</span>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="text-muted mt-2">Belum dikirim</div>
+                                    {% if current_user.id == transaction.seller_id and transaction.status == 'agreed' %}
+                                    <div class="alert alert-info alert-sm mt-2">
+                                        <small>
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            <strong>Kirim produk Anda ke pembeli:</strong><br>
+                                            1. <a href="{{ url_for('transactions.receipt', id=transaction.id) }}" target="_blank">Cetak label pengiriman</a><br>
+                                            2. Bawa barang + label ke agen JNE/J&T/SiCepat/dll<br>
+                                            3. Daftarkan pengiriman & dapatkan nomor resi<br>
+                                            4. Masukkan nomor resi di bawah ini
+                                        </small>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('transactions.detail', id=transaction.id) }}" class="mt-2">
+                                        {{ tracking_form.hidden_tag() }}
+                                        <div class="input-group input-group-sm">
+                                            {{ tracking_form.tracking_number(class="form-control", placeholder="Masukkan nomor resi dari agen") }}
+                                            <button type="submit" class="btn btn-primary">Simpan Resi</button>
+                                        </div>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Buyer Shipping (Pembeli kirim ke Penjual) -->
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="text-success">
+                                    <i class="fas fa-arrow-left me-1"></i>
+                                    Pembeli → Penjual
+                                </h6>
+                                <small class="text-muted">{{ transaction.buyer.full_name }} mengirim produk tawaran ke {{ transaction.seller.full_name }}</small>
+
+                                {% if transaction.buyer_tracking_number %}
+                                    <div class="mb-2 mt-2">
+                                        <small class="text-muted">Nomor Resi</small>
+                                        <div class="fw-semibold">{{ transaction.buyer_tracking_number }}</div>
+                                    </div>
+                                    {% if transaction.buyer_shipped_at %}
+                                    <div class="mb-2">
+                                        <small class="text-muted">Dikirim pada</small>
+                                        <div>{{ transaction.buyer_shipped_at.strftime('%d %b %Y, %H:%M') }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if transaction.buyer_received_at %}
+                                    <span class="badge bg-success">Dikonfirmasi Diterima Penjual</span>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="text-muted mt-2">Belum dikirim</div>
+                                    {% if current_user.id == transaction.buyer_id and transaction.status == 'agreed' %}
+                                    <div class="alert alert-info alert-sm mt-2">
+                                        <small>
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            <strong>Kirim produk tawaran Anda ke penjual:</strong><br>
+                                            1. <a href="{{ url_for('transactions.receipt', id=transaction.id) }}" target="_blank">Cetak label pengiriman</a><br>
+                                            2. Bawa barang + label ke agen JNE/J&T/SiCepat/dll<br>
+                                            3. Daftarkan pengiriman & dapatkan nomor resi<br>
+                                            4. Masukkan nomor resi di bawah ini
+                                        </small>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('transactions.detail', id=transaction.id) }}" class="mt-2">
+                                        {{ tracking_form.hidden_tag() }}
+                                        <div class="input-group input-group-sm">
+                                            {{ tracking_form.tracking_number(class="form-control", placeholder="Masukkan nomor resi dari agen") }}
+                                            <button type="submit" class="btn btn-success">Simpan Resi</button>
+                                        </div>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Transaction Summary -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Ringkasan Transaksi
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Poin Penjual:</span>
+                            <span class="fw-bold text-primary">{{ transaction.total_seller_points }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Poin Pembeli:</span>
+                            <span class="fw-bold text-success">{{ transaction.total_buyer_points }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Selisih:</span>
+                            {% set difference = transaction.total_seller_points - transaction.total_buyer_points %}
+                            <span class="fw-bold {% if difference == 0 %}text-success{% else %}text-warning{% endif %}">
+                                {{ difference }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Penjual</small>
+                        <div class="fw-semibold">{{ transaction.seller.full_name }}</div>
+                        <small class="text-muted">@{{ transaction.seller.username }}</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Pembeli</small>
+                        <div class="fw-semibold">{{ transaction.buyer.full_name }}</div>
+                        <small class="text-muted">@{{ transaction.buyer.username }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Aksi
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <!-- Tracking & Receipt Buttons -->
+                        <div class="btn-group w-100" role="group">
+                            <a href="{{ url_for('transactions.tracking', id=transaction.id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-shipping-fast me-1"></i>Tracking
+                            </a>
+                            <a href="{{ url_for('transactions.receipt', id=transaction.id) }}" 
+                               class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="fas fa-print me-1"></i>Cetak Label Pengiriman
+                            </a>
+                        </div>
+
+                        <!-- Confirm Receipt -->
+                        {% if transaction.status in ['shipped', 'completed'] %}
+                            {% if current_user.id == transaction.seller_id and not transaction.seller_received_at %}
+                            <div class="mt-3">
+                                <h6><i class="fas fa-key me-1"></i>Konfirmasi Penerimaan Paket dari Pembeli</h6>
+                                <div class="alert alert-info">
+                                    <small>Masukkan kode konfirmasi yang tertera pada paket yang Anda terima dari {{ transaction.buyer.full_name }}</small>
+                                </div>
+                                <form method="POST" action="{{ url_for('transactions.confirm_received', id=transaction.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <div class="input-group">
+                                        <input type="text" name="confirmation_code" class="form-control" 
+                                               placeholder="Masukkan kode 8 karakter" maxlength="8" required>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-check me-1"></i>Konfirmasi
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            {% endif %}
+
+                            {% if current_user.id == transaction.buyer_id and not transaction.buyer_received_at %}
+                            <div class="mt-3">
+                                <h6><i class="fas fa-key me-1"></i>Konfirmasi Penerimaan Paket dari Penjual</h6>
+                                <div class="alert alert-info">
+                                    <small>Masukkan kode konfirmasi yang tertera pada paket yang Anda terima dari {{ transaction.seller.full_name }}</small>
+                                </div>
+                                <form method="POST" action="{{ url_for('transactions.confirm_received', id=transaction.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <div class="input-group">
+                                        <input type="text" name="confirmation_code" class="form-control" 
+                                               placeholder="Masukkan kode 8 karakter" maxlength="8" required>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-check me-1"></i>Konfirmasi
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Chat -->
+                        <a href="{{ url_for('chat.room', product_id=transaction.product.id) }}" class="btn btn-primary">
+                            <i class="fas fa-comments me-1"></i>Chat dengan Partner
+                        </a>
+
+                        <!-- View Product -->
+                        <a href="{{ url_for('products.detail', id=transaction.product.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>Lihat Detail Produk
+                        </a>
+
+                        <!-- Report Issue -->
+                        {% if transaction.status not in ['completed', 'cancelled', 'dispute'] %}
+                        <a href="{{ url_for('transactions.dispute', id=transaction.id) }}" class="btn btn-outline-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Laporkan Masalah
+                        </a>
+                        {% endif %}
+
+                        <!-- Auto Confirmation Warning -->
+                        {% if transaction.status == 'shipped' and transaction.seller_shipped_at and transaction.buyer_shipped_at %}
+                        <div class="alert alert-warning p-2 mb-0 mt-2 text-center">
+                            <small>
+                                <i class="fas fa-clock me-1"></i>
+                                <strong>Konfirmasi Otomatis Aktif</strong><br>
+                                Transaksi akan selesai otomatis dalam 24 jam
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-uppercase confirmation code inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmationInputs = document.querySelectorAll('input[name="confirmation_code"]');
+
+    confirmationInputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+
+        // Add formatting and validation
+        input.addEventListener('keypress', function(e) {
+            // Only allow alphanumeric characters
+            const char = String.fromCharCode(e.which);
+            if (!/[A-Z0-9]/.test(char.toUpperCase())) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
