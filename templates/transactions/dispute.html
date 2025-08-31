@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Laporkan Sengketa - BarterHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Beranda</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('transactions.list_transactions') }}">Transaksi</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('transactions.detail', id=transaction.id) }}">Detail #{{ transaction.id }}</a></li>
+                    <li class="breadcrumb-item active">Sengketa</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Warning Alert -->
+            <div class="alert alert-warning border-0 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fs-3 me-3"></i>
+                    <div>
+                        <h6 class="mb-1">⚠️ Laporkan Sengketa Transaksi</h6>
+                        <p class="mb-0">
+                            Gunakan fitur ini hanya jika terjadi masalah serius dalam transaksi. 
+                            Tim kami akan meninjau laporan Anda dalam 1x24 jam.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Informasi Transaksi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-box me-1"></i>{{ transaction.product.name }}</h6>
+                            <p class="text-muted mb-1">ID Transaksi: #{{ transaction.id }}</p>
+                            <p class="text-muted mb-0">Status: <span class="badge bg-primary">{{ transaction.status.title() }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Penjual:</strong> {{ transaction.seller.full_name }}</p>
+                            <p class="mb-1"><strong>Pembeli:</strong> {{ transaction.buyer.full_name }}</p>
+                            <p class="mb-0"><strong>Tanggal:</strong> {{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dispute Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Form Laporan Sengketa
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Alasan Sengketa <span class="text-danger">*</span></label>
+                            <select name="reason" class="form-select" required>
+                                <option value="">Pilih alasan...</option>
+                                <option value="barang_tidak_sesuai">Barang tidak sesuai deskripsi</option>
+                                <option value="barang_rusak">Barang rusak/cacat</option>
+                                <option value="barang_tidak_sampai">Barang tidak sampai</option>
+                                <option value="barang_palsu">Barang palsu/tidak original</option>
+                                <option value="komunikasi_buruk">Komunikasi buruk dengan pihak lain</option>
+                                <option value="penipuan">Dugaan penipuan</option>
+                                <option value="pelanggaran_aturan">Pelanggaran aturan BarterHub</option>
+                                <option value="lainnya">Lainnya</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Deskripsi Detail <span class="text-danger">*</span></label>
+                            <textarea name="description" class="form-control" rows="6" 
+                                      placeholder="Jelaskan masalah yang Anda alami secara detail. Sertakan bukti jika ada..." required></textarea>
+                            <div class="form-text">
+                                Berikan penjelasan yang sejelas mungkin agar tim kami dapat membantu menyelesaikan masalah.
+                            </div>
+                        </div>
+
+                        <!-- Common Issues Guide -->
+                        <div class="alert alert-info border-0 mb-4">
+                            <h6 class="mb-2">💡 Tips Melaporkan Sengketa:</h6>
+                            <ul class="mb-0 small">
+                                <li>Sertakan foto barang yang bermasalah (jika ada)</li>
+                                <li>Cantumkan nomor resi pengiriman</li>
+                                <li>Jelaskan komunikasi yang sudah dilakukan dengan pihak lain</li>
+                                <li>Sebutkan kerugian yang dialami</li>
+                                <li>Sarankan solusi yang diharapkan</li>
+                            </ul>
+                        </div>
+
+                        <!-- Contact Info -->
+                        <div class="mb-4">
+                            <label class="form-label">Kontak untuk Follow-up (Opsional)</label>
+                            <input type="text" class="form-control" name="contact" 
+                                   value="{{ current_user.phone or current_user.email }}"
+                                   placeholder="Nomor WhatsApp atau email alternatif">
+                            <div class="form-text">
+                                Tim kami mungkin perlu menghubungi Anda untuk informasi lebih lanjut.
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-paper-plane me-1"></i>Kirim Laporan Sengketa
+                            </button>
+                            <a href="{{ url_for('transactions.detail', id=transaction.id) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Batal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Alternative Solutions -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-handshake me-2"></i>Solusi Alternatif
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Sebelum melaporkan sengketa, coba solusi berikut:</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-comments text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Chat Langsung</h6>
+                                    <p class="mb-0 small text-muted">Diskusikan masalah dengan pihak lain</p>
+                                    <a href="{{ url_for('chat.room', product_id=transaction.product_id) }}" class="btn btn-sm btn-outline-primary mt-2">
+                                        Buka Chat
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-phone text-success fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Hubungi Support</h6>
+                                    <p class="mb-0 small text-muted">Tim customer service siap membantu</p>
+                                    <a href="mailto:support@barterhub.com" class="btn btn-sm btn-outline-success mt-2">
+                                        Email Support
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
